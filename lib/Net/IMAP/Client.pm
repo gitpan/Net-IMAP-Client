@@ -1,7 +1,7 @@
 package Net::IMAP::Client;
 
 use vars qw[$VERSION];
-$VERSION = '0.94';
+$VERSION = '0.95';
 
 use strict;
 use warnings;
@@ -48,7 +48,7 @@ sub DESTROY {
     my ($self) = @_;
     eval {
         $self->quit
-          if $self->_get_socket->opened;
+          if $self->{socket}->opened;
     };
 }
 
@@ -145,10 +145,19 @@ sub status {
 }
 
 sub select {
-    my ($self, $folder) = @_;
+	my ($self, $folder) = @_;
+	$self->_select_or_examine($folder, 'SELECT');
+}
+sub examine {
+	my ($self, $folder) = @_;
+	$self->_select_or_examine($folder, 'EXAMINE');
+}
+
+sub _select_or_examine {
+    my ($self, $folder, $operation) = @_;
     my $quoted = $folder;
     _string_quote($quoted);
-    my ($ok, $lines) = $self->_tell_imap(SELECT => $quoted);
+    my ($ok, $lines) = $self->_tell_imap($operation => $quoted);
     if ($ok) {
         $self->{selected_folder} = $folder;
         my %info = ();
@@ -1242,6 +1251,11 @@ might want to take a look at RFC3501 at this point. :-p
 
 This method is basically stolen from Net::IMAP::Simple.
 
+=head2 examine($folder)
+
+Selects the current IMAP folder in read-only (EXAMINE) mode.
+Otherwise identical to select.
+ 
 =head2 status($folder), status(\@folders)
 
 Returns the status of the given folder(s).
