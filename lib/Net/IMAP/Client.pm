@@ -1,7 +1,7 @@
 package Net::IMAP::Client;
 
 use vars qw[$VERSION];
-$VERSION = '0.95';
+$VERSION = '0.9501';
 
 use strict;
 use warnings;
@@ -301,7 +301,8 @@ sub search {
         my @a;
         while (my ($key, $val) = each %$criteria) {
             my $quoted = $val;
-            _string_quote($quoted);
+			# don't quote range
+			_string_quote($quoted) unless uc $key eq 'UID';
             push @a, uc $key, $quoted;
         }
         $criteria = '(' . join(' ', @a) . ')';
@@ -1074,13 +1075,13 @@ Net::IMAP::Client - Not so simple IMAP client library
     # get folder hierarchy separator (cached at first call)
     my $sep = $imap->separator;
 
-    # fetch all message ids
-    my @messages = $imap->search('ALL');
+    # fetch all message ids (as array reference)
+    my $messages = $imap->search('ALL');
 
     # fetch all ID-s sorted by subject
     my $messages = $imap->search('ALL', 'SUBJECT');
        # or
-    my @messages = $imap->search('ALL', [ 'SUBJECT' ]);
+    my $messages = $imap->search('ALL', [ 'SUBJECT' ]);
 
     # fetch ID-s that match criteria, sorted by subject and reverse date
     my $messages = $imap->search({
@@ -1100,7 +1101,7 @@ Net::IMAP::Client - Not so simple IMAP client library
     my $data = $imap->get_rfc822_body($msg_id);
     print $$data; # it's reference to a scalar
 
-    # fetch full messageS
+    # fetch full messages
     my @msgs = $imap->get_rfc822_body([ @msg_ids ]);
     print $$_ for (@msgs);
 
@@ -1172,7 +1173,7 @@ Pass a true value if you want to use IO::Socket::SSL
 
 =item - B<uid_mode> (BOOL, optional, default TRUE)
 
-Wether to use UID command (see RFC3501).  Recommended.
+Whether to use UID command (see RFC3501).  Recommended.
 
 =item - B<socket> (IO::Handle, optional)
 
