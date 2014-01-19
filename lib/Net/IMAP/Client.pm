@@ -1,7 +1,7 @@
 package Net::IMAP::Client;
 
 use vars qw[$VERSION];
-$VERSION = '0.9503';
+$VERSION = '0.9504';
 
 use strict;
 use warnings;
@@ -283,7 +283,6 @@ sub search {
     my ($self, $criteria, $sort, $charset) = @_;
 
     $charset ||= 'UTF-8';
-    _string_quote($charset);
 
     my $cmd = $sort ? 'SORT' : 'SEARCH';
     if ($sort) {
